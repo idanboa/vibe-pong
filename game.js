@@ -53,7 +53,7 @@ class VibePong {
             radius: 8,
             vx: 5,
             vy: 3,
-            speed: 6,
+            speed: 3,
             maxSpeed: 15,
             trail: []
         };
@@ -216,7 +216,7 @@ class VibePong {
     resetBall() {
         this.ball.x = this.width / 2;
         this.ball.y = this.height / 2;
-        this.ball.speed = 6;
+        this.ball.speed = 3;
         
         // Random direction
         const angle = (Math.random() - 0.5) * Math.PI / 3; // ±30 degrees
