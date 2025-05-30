@@ -97,6 +97,14 @@ body {
     justify-content: center;
 }
 
+.audio-options {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+}
+
 .menu-btn {
     background: transparent;
     border: 2px solid var(--primary-cyan);
