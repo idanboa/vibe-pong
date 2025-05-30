@@ -31,10 +31,16 @@
             
             <div class="menu-section" id="controlSchemeSection">
                 <h2>Control Scheme</h2>
-                <div class="control-options">
+                <!-- Two Player Controls -->
+                <div class="control-options" id="twoPlayerControls">
                     <button class="menu-btn" data-controls="classic">Classic (W/S - ↑/↓)</button>
                     <button class="menu-btn" data-controls="spaced">Spaced (A/Z - K/M)</button>
                     <button class="menu-btn" data-controls="sameside">Same Side (Q/A - P/L)</button>
+                </div>
+                <!-- Single Player Controls -->
+                <div class="control-options" id="singlePlayerControls" style="display: none;">
+                    <button class="menu-btn" data-controls="arrows">Arrow Keys (↑/↓)</button>
+                    <button class="menu-btn" data-controls="wasd">WASD Keys (W/S)</button>
                 </div>
             </div>
 
@@ -80,7 +86,7 @@
                     <span id="p1Controls" class="controls-text">W/S</span>
                 </div>
                 <div class="game-controls">
-                    <span>SPACE: Pause | R: Reset</span>
+                    <span>SPACE: Pause | R: Reset | ESC: Menu</span>
                 </div>
                 <div class="player-controls">
                     <span class="player-label">Player 2</span>

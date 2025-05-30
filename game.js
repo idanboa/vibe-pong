@@ -73,11 +73,30 @@ class VibePong {
             sameside: {
                 p1Up: 'KeyQ', p1Down: 'KeyA',
                 p2Up: 'KeyP', p2Down: 'KeyL'
+            },
+            arrows: {
+                p1Up: 'ArrowUp', p1Down: 'ArrowDown',
+                p2Up: null, p2Down: null
+            },
+            wasd: {
+                p1Up: 'KeyW', p1Down: 'KeyS',
+                p2Up: null, p2Down: null
             }
         };
         
         // Input state
         this.keys = {};
+        
+        // AI system
+        this.ai = {
+            targetY: this.height / 2,
+            reactionTime: 0,
+            lastUpdate: 0,
+            missChance: 0,
+            speed: 1,
+            prediction: 0,
+            errorMargin: 0
+        };
         
         // Animation
         this.lastTime = 0;
@@ -165,13 +184,29 @@ class VibePong {
     toggleMenuSections() {
         const aiDifficultySection = document.getElementById('aiDifficultySection');
         const controlSchemeSection = document.getElementById('controlSchemeSection');
+        const twoPlayerControls = document.getElementById('twoPlayerControls');
+        const singlePlayerControls = document.getElementById('singlePlayerControls');
         
         if (this.playerMode === 'singlePlayer') {
             aiDifficultySection.style.display = 'block';
             controlSchemeSection.querySelector('h2').textContent = 'Player Controls';
+            twoPlayerControls.style.display = 'none';
+            singlePlayerControls.style.display = 'flex';
+            
+            // Set default single player control
+            document.querySelectorAll('[data-controls]').forEach(b => b.classList.remove('selected'));
+            document.querySelector('[data-controls="arrows"]').classList.add('selected');
+            this.controlScheme = 'arrows';
         } else {
             aiDifficultySection.style.display = 'none';
             controlSchemeSection.querySelector('h2').textContent = 'Control Scheme';
+            twoPlayerControls.style.display = 'flex';
+            singlePlayerControls.style.display = 'none';
+            
+            // Set default two player control
+            document.querySelectorAll('[data-controls]').forEach(b => b.classList.remove('selected'));
+            document.querySelector('[data-controls="classic"]').classList.add('selected');
+            this.controlScheme = 'classic';
         }
     }
     
@@ -203,16 +238,46 @@ class VibePong {
         }
     }
     
+    configureAI() {
+        switch (this.aiDifficulty) {
+            case 'easy':
+                this.ai.reactionTime = 300; // 300ms delay
+                this.ai.missChance = 0.15; // 15% miss rate
+                this.ai.speed = 0.6; // 60% of normal speed
+                this.ai.prediction = 0; // No prediction
+                this.ai.errorMargin = 40; // Large error margin
+                break;
+            case 'medium':
+                this.ai.reactionTime = 150; // 150ms delay
+                this.ai.missChance = 0.05; // 5% miss rate
+                this.ai.speed = 0.8; // 80% speed
+                this.ai.prediction = 0.3; // Some prediction
+                this.ai.errorMargin = 20; // Medium error margin
+                break;
+            case 'hard':
+                this.ai.reactionTime = 50; // 50ms delay
+                this.ai.missChance = 0.02; // 2% miss rate
+                this.ai.speed = 1.0; // Full speed
+                this.ai.prediction = 0.7; // Strong prediction
+                this.ai.errorMargin = 5; // Small error margin
+                break;
+        }
+    }
+    
     handleKeyPress(keyCode) {
         if (this.gameState === 'playing') {
             if (keyCode === 'Space') {
                 this.pauseGame();
             } else if (keyCode === 'KeyR') {
                 this.resetGame();
+            } else if (keyCode === 'Escape') {
+                this.quitToMenu();
             }
         } else if (this.gameState === 'paused') {
             if (keyCode === 'Space') {
                 this.resumeGame();
+            } else if (keyCode === 'Escape') {
+                this.quitToMenu();
             }
         }
     }
@@ -246,6 +311,7 @@ class VibePong {
         this.resetGameObjects();
         this.updateControlsDisplay();
         this.updatePlayerTitles();
+        this.configureAI();
         this.gameLoop();
     }
     
@@ -305,7 +371,7 @@ class VibePong {
     updatePaddles() {
         const scheme = this.controls[this.controlScheme];
         
-        // Player 1 controls
+        // Player 1 controls (always human)
         if (this.keys[scheme.p1Up] && this.paddle1.y > 0) {
             this.paddle1.y -= this.paddle1.speed;
         }
@@ -313,12 +379,69 @@ class VibePong {
             this.paddle1.y += this.paddle1.speed;
         }
         
-        // Player 2 controls
-        if (this.keys[scheme.p2Up] && this.paddle2.y > 0) {
-            this.paddle2.y -= this.paddle2.speed;
+        // Player 2 controls (human or AI)
+        if (this.playerMode === 'singlePlayer') {
+            this.updateAI();
+        } else {
+            if (this.keys[scheme.p2Up] && this.paddle2.y > 0) {
+                this.paddle2.y -= this.paddle2.speed;
+            }
+            if (this.keys[scheme.p2Down] && this.paddle2.y < this.height - this.paddle2.height) {
+                this.paddle2.y += this.paddle2.speed;
+            }
         }
-        if (this.keys[scheme.p2Down] && this.paddle2.y < this.height - this.paddle2.height) {
-            this.paddle2.y += this.paddle2.speed;
+    }
+    
+    updateAI() {
+        const currentTime = Date.now();
+        
+        // Only update AI decision based on reaction time
+        if (currentTime - this.ai.lastUpdate > this.ai.reactionTime) {
+            this.ai.lastUpdate = currentTime;
+            
+            // Calculate target position
+            let targetY = this.ball.y;
+            
+            // Add prediction based on difficulty
+            if (this.ai.prediction > 0) {
+                const futureTime = this.ai.prediction * 100; // Look ahead
+                const futureY = this.ball.y + (this.ball.vy * futureTime);
+                targetY = this.ball.y + ((futureY - this.ball.y) * this.ai.prediction);
+            }
+            
+            // Add error margin for realism
+            const error = (Math.random() - 0.5) * this.ai.errorMargin;
+            targetY += error;
+            
+            // Intentional miss chance
+            if (Math.random() < this.ai.missChance) {
+                targetY += (Math.random() - 0.5) * 200; // Random miss
+            }
+            
+            // Center target on paddle
+            this.ai.targetY = targetY - (this.paddle2.height / 2);
+        }
+        
+        // Move AI paddle toward target
+        const paddleCenter = this.paddle2.y + (this.paddle2.height / 2);
+        const targetCenter = this.ai.targetY + (this.paddle2.height / 2);
+        const distance = targetCenter - paddleCenter;
+        
+        if (Math.abs(distance) > 5) { // Dead zone to prevent jittering
+            const moveSpeed = this.paddle2.speed * this.ai.speed;
+            if (distance > 0) {
+                // Move down
+                this.paddle2.y = Math.min(
+                    this.paddle2.y + moveSpeed,
+                    this.height - this.paddle2.height
+                );
+            } else {
+                // Move up
+                this.paddle2.y = Math.max(
+                    this.paddle2.y - moveSpeed,
+                    0
+                );
+            }
         }
     }
     
@@ -522,6 +645,13 @@ class VibePong {
         this.render();
         
         this.animationId = requestAnimationFrame((time) => this.gameLoop(time));
+    }
+    
+    quitToMenu() {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+        }
+        this.showMenu();
     }
 }
 
