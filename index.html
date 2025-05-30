@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Pong - Neon Edition</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Main Menu -->
+        <div id="menu" class="menu">
+            <h1 class="title">VIBE PONG</h1>
+            
+            <div class="menu-section">
+                <h2>Control Scheme</h2>
+                <div class="control-options">
+                    <button class="menu-btn" data-controls="classic">Classic (W/S - ↑/↓)</button>
+                    <button class="menu-btn" data-controls="spaced">Spaced (A/Z - K/M)</button>
+                    <button class="menu-btn" data-controls="sameside">Same Side (Q/A - P/L)</button>
+                </div>
+            </div>
+
+            <div class="menu-section">
+                <h2>Game Mode</h2>
+                <div class="mode-options">
+                    <button class="menu-btn" data-mode="score">Score Mode (First to 10)</button>
+                    <button class="menu-btn" data-mode="time">Time Mode (2 Minutes)</button>
+                </div>
+            </div>
+
+            <button class="play-btn" id="playBtn">START GAME</button>
+        </div>
+
+        <!-- Game Canvas -->
+        <div id="gameContainer" class="game-container hidden">
+            <div class="game-ui">
+                <div class="score-display">
+                    <span id="player1Score" class="score">0</span>
+                    <span class="score-separator">:</span>
+                    <span id="player2Score" class="score">0</span>
+                </div>
+                <div id="gameTimer" class="timer hidden">2:00</div>
+                <div id="gameStatus" class="status"></div>
+            </div>
+            
+            <canvas id="gameCanvas" width="1024" height="768"></canvas>
+            
+            <div class="controls-display">
+                <div class="player-controls">
+                    <span class="player-label">Player 1</span>
+                    <span id="p1Controls" class="controls-text">W/S</span>
+                </div>
+                <div class="game-controls">
+                    <span>SPACE: Pause | R: Reset</span>
+                </div>
+                <div class="player-controls">
+                    <span class="player-label">Player 2</span>
+                    <span id="p2Controls" class="controls-text">↑/↓</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pause Overlay -->
+        <div id="pauseOverlay" class="pause-overlay hidden">
+            <h2>GAME PAUSED</h2>
+            <p>Press SPACE to resume</p>
+        </div>
+
+        <!-- Game Over Overlay -->
+        <div id="gameOverOverlay" class="game-over-overlay hidden">
+            <h2 id="gameOverTitle">GAME OVER</h2>
+            <p id="gameOverMessage"></p>
+            <button class="menu-btn" onclick="showMenu()">Back to Menu</button>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html> 
