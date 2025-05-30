@@ -30,35 +30,16 @@ class VibePong {
             white: '#FFFFFF'
         };
         
+        // Initialize systems
+        this.audioSystem = new AudioSystem();
+        this.particleSystem = new ParticleSystem();
+        this.ai = new AIOpponent();
+        this.menuManager = new MenuManager(this);
+        
         // Game objects
-        this.paddle1 = {
-            x: 50,
-            y: this.height / 2 - 60,
-            width: 15,
-            height: 120,
-            speed: 8,
-            score: 0
-        };
-        
-        this.paddle2 = {
-            x: this.width - 65,
-            y: this.height / 2 - 60,
-            width: 15,
-            height: 120,
-            speed: 8,
-            score: 0
-        };
-        
-        this.ball = {
-            x: this.width / 2,
-            y: this.height / 2,
-            radius: 8,
-            vx: 5,
-            vy: 3,
-            speed: 4,
-            maxSpeed: 15,
-            trail: []
-        };
+        this.paddle1 = new Paddle(50, this.height / 2 - 60, 15, 120, 8);
+        this.paddle2 = new Paddle(this.width - 65, this.height / 2 - 60, 15, 120, 8);
+        this.ball = new Ball(this.width / 2, this.height / 2, 8, 4);
         
         // Control schemes
         this.controls = {
@@ -87,94 +68,16 @@ class VibePong {
         // Input state
         this.keys = {};
         
-        // AI system
-        this.ai = {
-            targetY: this.height / 2,
-            reactionTime: 0,
-            lastUpdate: 0,
-            missChance: 0,
-            speed: 1,
-            prediction: 0,
-            errorMargin: 0
-        };
-        
         // Animation
         this.lastTime = 0;
         this.animationId = null;
-        
-        // Audio system
-        this.audioContext = null;
-        this.audioEnabled = true;
-        this.soundsOn = true;
-        this.sounds = {
-            paddleHit: null,
-            wallBounce: null,
-            score: null,
-            menuClick: null,
-            gameOver: null
-        };
-        
-        // Particle system
-        this.particles = [];
         
         this.init();
     }
     
     init() {
         this.setupEventListeners();
-        this.setupMenuHandlers();
         this.showMenu();
-        this.initAudio();
-    }
-    
-    initAudio() {
-        try {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            this.createSounds();
-        } catch (e) {
-            console.log('Audio not supported');
-            this.audioEnabled = false;
-        }
-    }
-    
-    createSounds() {
-        // Create synthetic cyberpunk sounds using oscillators
-        this.sounds.paddleHit = () => this.createSyntheticSound(220, 0.1, 'square');
-        this.sounds.wallBounce = () => this.createSyntheticSound(150, 0.15, 'triangle');
-        this.sounds.score = () => this.createSyntheticSound(440, 0.3, 'sawtooth');
-        this.sounds.menuClick = () => this.createSyntheticSound(330, 0.1, 'sine');
-        this.sounds.gameOver = () => this.createGameOverSound();
-    }
-    
-    createSyntheticSound(frequency, duration, waveType = 'sine') {
-        if (!this.audioEnabled || !this.audioContext) return;
-        
-        const oscillator = this.audioContext.createOscillator();
-        const gainNode = this.audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
-        oscillator.type = waveType;
-        
-        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
-        
-        oscillator.start(this.audioContext.currentTime);
-        oscillator.stop(this.audioContext.currentTime + duration);
-    }
-    
-    createGameOverSound() {
-        if (!this.audioEnabled || !this.audioContext) return;
-        
-        // Multi-tone game over sound
-        const frequencies = [220, 185, 165, 147];
-        frequencies.forEach((freq, index) => {
-            setTimeout(() => {
-                this.createSyntheticSound(freq, 0.4, 'square');
-            }, index * 100);
-        });
     }
     
     setupEventListeners() {
@@ -196,117 +99,6 @@ class VibePong {
         });
     }
     
-    setupMenuHandlers() {
-        // Player mode selection
-        document.querySelectorAll('[data-player-mode]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.playSound('menuClick');
-                document.querySelectorAll('[data-player-mode]').forEach(b => b.classList.remove('selected'));
-                e.target.classList.add('selected');
-                this.playerMode = e.target.dataset.playerMode;
-                this.toggleMenuSections();
-            });
-        });
-
-        // AI difficulty selection
-        document.querySelectorAll('[data-ai-difficulty]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.playSound('menuClick');
-                document.querySelectorAll('[data-ai-difficulty]').forEach(b => b.classList.remove('selected'));
-                e.target.classList.add('selected');
-                this.aiDifficulty = e.target.dataset.aiDifficulty;
-            });
-        });
-        
-        // Control scheme selection
-        document.querySelectorAll('[data-controls]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.playSound('menuClick');
-                document.querySelectorAll('[data-controls]').forEach(b => b.classList.remove('selected'));
-                e.target.classList.add('selected');
-                this.controlScheme = e.target.dataset.controls;
-                this.updateControlsDisplay();
-            });
-        });
-        
-        // Game mode selection
-        document.querySelectorAll('[data-mode]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.playSound('menuClick');
-                document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('selected'));
-                e.target.classList.add('selected');
-                this.gameMode = e.target.dataset.mode;
-            });
-        });
-        
-        // Audio toggle selection
-        document.querySelectorAll('[data-audio]').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                this.playSound('menuClick');
-                document.querySelectorAll('[data-audio]').forEach(b => b.classList.remove('selected'));
-                e.target.classList.add('selected');
-                this.soundsOn = e.target.dataset.audio === 'on';
-            });
-        });
-        
-        // Start game button
-        document.getElementById('playBtn').addEventListener('click', () => {
-            this.playSound('menuClick');
-            this.startGame();
-        });
-        
-        // Set defaults
-        document.querySelector('[data-player-mode="twoPlayer"]').classList.add('selected');
-        document.querySelector('[data-ai-difficulty="medium"]').classList.add('selected');
-        document.querySelector('[data-controls="classic"]').classList.add('selected');
-        document.querySelector('[data-mode="score"]').classList.add('selected');
-        document.querySelector('[data-audio="on"]').classList.add('selected');
-    }
-    
-    toggleMenuSections() {
-        const aiDifficultySection = document.getElementById('aiDifficultySection');
-        const controlSchemeSection = document.getElementById('controlSchemeSection');
-        const twoPlayerControls = document.getElementById('twoPlayerControls');
-        const singlePlayerControls = document.getElementById('singlePlayerControls');
-        
-        if (this.playerMode === 'singlePlayer') {
-            aiDifficultySection.style.display = 'block';
-            controlSchemeSection.querySelector('h2').textContent = 'Player Controls';
-            twoPlayerControls.style.display = 'none';
-            singlePlayerControls.style.display = 'flex';
-            
-            // Set default single player control
-            document.querySelectorAll('[data-controls]').forEach(b => b.classList.remove('selected'));
-            document.querySelector('[data-controls="arrows"]').classList.add('selected');
-            this.controlScheme = 'arrows';
-        } else {
-            aiDifficultySection.style.display = 'none';
-            controlSchemeSection.querySelector('h2').textContent = 'Control Scheme';
-            twoPlayerControls.style.display = 'flex';
-            singlePlayerControls.style.display = 'none';
-            
-            // Set default two player control
-            document.querySelectorAll('[data-controls]').forEach(b => b.classList.remove('selected'));
-            document.querySelector('[data-controls="classic"]').classList.add('selected');
-            this.controlScheme = 'classic';
-        }
-    }
-    
-    updateControlsDisplay() {
-        const scheme = this.controls[this.controlScheme];
-        const p1Display = document.getElementById('p1Controls');
-        const p2Display = document.getElementById('p2Controls');
-        
-        const keyMap = {
-            'KeyW': 'W', 'KeyS': 'S', 'KeyA': 'A', 'KeyZ': 'Z',
-            'KeyQ': 'Q', 'KeyK': 'K', 'KeyM': 'M', 'KeyP': 'P', 'KeyL': 'L',
-            'ArrowUp': '↑', 'ArrowDown': '↓'
-        };
-        
-        p1Display.textContent = `${keyMap[scheme.p1Up]}/${keyMap[scheme.p1Down]}`;
-        p2Display.textContent = `${keyMap[scheme.p2Up]}/${keyMap[scheme.p2Down]}`;
-    }
-    
     updatePlayerTitles() {
         const player1Title = document.getElementById('player1Title');
         const player2Title = document.getElementById('player2Title');
@@ -317,32 +109,6 @@ class VibePong {
         } else {
             player1Title.textContent = 'PLAYER 1';
             player2Title.textContent = 'PLAYER 2';
-        }
-    }
-    
-    configureAI() {
-        switch (this.aiDifficulty) {
-            case 'easy':
-                this.ai.reactionTime = 300; // 300ms delay
-                this.ai.missChance = 0.15; // 15% miss rate
-                this.ai.speed = 0.6; // 60% of normal speed
-                this.ai.prediction = 0; // No prediction
-                this.ai.errorMargin = 40; // Large error margin
-                break;
-            case 'medium':
-                this.ai.reactionTime = 150; // 150ms delay
-                this.ai.missChance = 0.05; // 5% miss rate
-                this.ai.speed = 0.8; // 80% speed
-                this.ai.prediction = 0.3; // Some prediction
-                this.ai.errorMargin = 20; // Medium error margin
-                break;
-            case 'hard':
-                this.ai.reactionTime = 50; // 50ms delay
-                this.ai.missChance = 0.02; // 2% miss rate
-                this.ai.speed = 1.0; // Full speed
-                this.ai.prediction = 0.7; // Strong prediction
-                this.ai.errorMargin = 5; // Small error margin
-                break;
         }
     }
     
@@ -366,10 +132,7 @@ class VibePong {
     
     showMenu() {
         this.gameState = 'menu';
-        document.getElementById('menu').classList.remove('hidden');
-        document.getElementById('gameContainer').classList.add('hidden');
-        document.getElementById('pauseOverlay').classList.add('hidden');
-        document.getElementById('gameOverOverlay').classList.add('hidden');
+        this.menuManager.showMenu();
         
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
@@ -391,39 +154,21 @@ class VibePong {
         }
         
         this.resetGameObjects();
-        this.updateControlsDisplay();
         this.updatePlayerTitles();
-        this.configureAI();
+        this.ai.configure(this.aiDifficulty);
         this.gameLoop();
     }
     
     resetGameObjects() {
         // Reset paddles
-        this.paddle1.y = this.height / 2 - 60;
-        this.paddle2.y = this.height / 2 - 60;
-        this.paddle1.score = 0;
-        this.paddle2.score = 0;
+        this.paddle1.reset(this.height / 2);
+        this.paddle2.reset(this.height / 2);
         
         // Reset ball
-        this.resetBall();
+        this.ball.reset(this.width / 2, this.height / 2, 4);
         
         // Update displays
         this.updateScore();
-    }
-    
-    resetBall() {
-        this.ball.x = this.width / 2;
-        this.ball.y = this.height / 2;
-        this.ball.speed = 4;
-        
-        // Random direction
-        const angle = (Math.random() - 0.5) * Math.PI / 3; // ±30 degrees
-        const direction = Math.random() < 0.5 ? 1 : -1;
-        
-        this.ball.vx = Math.cos(angle) * this.ball.speed * direction;
-        this.ball.vy = Math.sin(angle) * this.ball.speed;
-        
-        this.ball.trail = [];
     }
     
     pauseGame() {
@@ -447,7 +192,7 @@ class VibePong {
         this.updatePaddles();
         this.updateBall(deltaTime);
         this.updateTimer(deltaTime);
-        this.updateParticles();
+        this.particleSystem.updateParticles();
         this.checkWinConditions();
     }
     
@@ -455,154 +200,54 @@ class VibePong {
         const scheme = this.controls[this.controlScheme];
         
         // Player 1 controls (always human)
-        if (this.keys[scheme.p1Up] && this.paddle1.y > 0) {
-            this.paddle1.y -= this.paddle1.speed;
+        if (this.keys[scheme.p1Up]) {
+            this.paddle1.moveUp();
         }
-        if (this.keys[scheme.p1Down] && this.paddle1.y < this.height - this.paddle1.height) {
-            this.paddle1.y += this.paddle1.speed;
+        if (this.keys[scheme.p1Down]) {
+            this.paddle1.moveDown(this.height);
         }
         
         // Player 2 controls (human or AI)
         if (this.playerMode === 'singlePlayer') {
-            this.updateAI();
+            this.ai.update(this.ball, this.paddle2, this.height);
         } else {
-            if (this.keys[scheme.p2Up] && this.paddle2.y > 0) {
-                this.paddle2.y -= this.paddle2.speed;
+            if (this.keys[scheme.p2Up]) {
+                this.paddle2.moveUp();
             }
-            if (this.keys[scheme.p2Down] && this.paddle2.y < this.height - this.paddle2.height) {
-                this.paddle2.y += this.paddle2.speed;
-            }
-        }
-    }
-    
-    updateAI() {
-        const currentTime = Date.now();
-        
-        // Only update AI decision based on reaction time
-        if (currentTime - this.ai.lastUpdate > this.ai.reactionTime) {
-            this.ai.lastUpdate = currentTime;
-            
-            // Calculate target position
-            let targetY = this.ball.y;
-            
-            // Add prediction based on difficulty
-            if (this.ai.prediction > 0) {
-                const futureTime = this.ai.prediction * 100; // Look ahead
-                const futureY = this.ball.y + (this.ball.vy * futureTime);
-                targetY = this.ball.y + ((futureY - this.ball.y) * this.ai.prediction);
-            }
-            
-            // Add error margin for realism
-            const error = (Math.random() - 0.5) * this.ai.errorMargin;
-            targetY += error;
-            
-            // Intentional miss chance
-            if (Math.random() < this.ai.missChance) {
-                targetY += (Math.random() - 0.5) * 200; // Random miss
-            }
-            
-            // Center target on paddle
-            this.ai.targetY = targetY - (this.paddle2.height / 2);
-        }
-        
-        // Move AI paddle toward target
-        const paddleCenter = this.paddle2.y + (this.paddle2.height / 2);
-        const targetCenter = this.ai.targetY + (this.paddle2.height / 2);
-        const distance = targetCenter - paddleCenter;
-        
-        if (Math.abs(distance) > 5) { // Dead zone to prevent jittering
-            const moveSpeed = this.paddle2.speed * this.ai.speed;
-            if (distance > 0) {
-                // Move down
-                this.paddle2.y = Math.min(
-                    this.paddle2.y + moveSpeed,
-                    this.height - this.paddle2.height
-                );
-            } else {
-                // Move up
-                this.paddle2.y = Math.max(
-                    this.paddle2.y - moveSpeed,
-                    0
-                );
+            if (this.keys[scheme.p2Down]) {
+                this.paddle2.moveDown(this.height);
             }
         }
     }
     
     updateBall(deltaTime) {
-        // Add current position to trail
-        this.ball.trail.push({ x: this.ball.x, y: this.ball.y });
-        if (this.ball.trail.length > 10) {
-            this.ball.trail.shift();
-        }
-        
-        // Move ball
-        this.ball.x += this.ball.vx;
-        this.ball.y += this.ball.vy;
+        this.ball.update();
         
         // Top and bottom wall collision
         if (this.ball.y - this.ball.radius <= 0 || this.ball.y + this.ball.radius >= this.height) {
-            this.ball.vy = -this.ball.vy;
+            this.ball.bounceY();
             this.ball.y = Math.max(this.ball.radius, Math.min(this.height - this.ball.radius, this.ball.y));
-            this.playSound('wallBounce');
-            this.createParticles(this.ball.x, this.ball.y, this.colors.accent, 4);
+            this.audioSystem.playSound('wallBounce');
+            this.particleSystem.createParticles(this.ball.x, this.ball.y, this.colors.accent, 4);
         }
         
         // Paddle collisions
-        this.checkPaddleCollision(this.paddle1);
-        this.checkPaddleCollision(this.paddle2);
+        this.ball.handlePaddleCollision(this.paddle1, this.colors, this.audioSystem, this.particleSystem);
+        this.ball.handlePaddleCollision(this.paddle2, this.colors, this.audioSystem, this.particleSystem);
         
         // Score zones
         if (this.ball.x < 0) {
             this.paddle2.score++;
             this.updateScore();
-            this.playSound('score');
-            this.createParticles(this.ball.x, this.ball.y, this.colors.secondary, 12);
-            this.resetBall();
+            this.audioSystem.playSound('score');
+            this.particleSystem.createParticles(this.ball.x, this.ball.y, this.colors.secondary, 12);
+            this.ball.reset(this.width / 2, this.height / 2, 4);
         } else if (this.ball.x > this.width) {
             this.paddle1.score++;
             this.updateScore();
-            this.playSound('score');
-            this.createParticles(this.ball.x, this.ball.y, this.colors.primary, 12);
-            this.resetBall();
-        }
-    }
-    
-    checkPaddleCollision(paddle) {
-        if (this.ball.x - this.ball.radius < paddle.x + paddle.width &&
-            this.ball.x + this.ball.radius > paddle.x &&
-            this.ball.y - this.ball.radius < paddle.y + paddle.height &&
-            this.ball.y + this.ball.radius > paddle.y) {
-            
-            // Calculate hit position on paddle (-1 to 1)
-            const hitPos = ((this.ball.y - paddle.y) / paddle.height) * 2 - 1;
-            
-            // Calculate new angle based on hit position
-            const maxAngle = Math.PI / 3; // 60 degrees
-            const angle = hitPos * maxAngle;
-            
-            // Calculate new speed based on angle (steeper = faster)
-            const speedMultiplier = 1 + Math.abs(hitPos) * 0.5;
-            const newSpeed = Math.min(this.ball.speed * speedMultiplier, this.ball.maxSpeed);
-            
-            // Set new velocity
-            const direction = paddle === this.paddle1 ? 1 : -1;
-            this.ball.vx = Math.cos(angle) * newSpeed * direction;
-            this.ball.vy = Math.sin(angle) * newSpeed;
-            
-            // Move ball away from paddle to prevent sticking
-            if (paddle === this.paddle1) {
-                this.ball.x = paddle.x + paddle.width + this.ball.radius;
-            } else {
-                this.ball.x = paddle.x - this.ball.radius;
-            }
-            
-            // Increase ball speed slightly for rally progression
-            this.ball.speed = Math.min(this.ball.speed + 0.2, this.ball.maxSpeed);
-            this.playSound('paddleHit');
-            
-            // Create particles on paddle hit
-            const particleColor = paddle === this.paddle1 ? this.colors.primary : this.colors.secondary;
-            this.createParticles(this.ball.x, this.ball.y, particleColor, 8);
+            this.audioSystem.playSound('score');
+            this.particleSystem.createParticles(this.ball.x, this.ball.y, this.colors.primary, 12);
+            this.ball.reset(this.width / 2, this.height / 2, 4);
         }
     }
     
@@ -659,7 +304,7 @@ class VibePong {
         document.getElementById('gameOverTitle').textContent = winner === 'Tie' ? 'TIE GAME!' : `${winner} WINS!`;
         document.getElementById('gameOverMessage').textContent = message;
         document.getElementById('gameOverOverlay').classList.remove('hidden');
-        this.playSound('gameOver');
+        this.audioSystem.playSound('gameOver');
     }
     
     updateScore() {
@@ -686,51 +331,16 @@ class VibePong {
         this.ctx.stroke();
         this.ctx.setLineDash([]);
         
-        // Draw ball trail
-        this.drawBallTrail();
-        
-        // Draw ball
-        this.drawBall();
-        
-        // Draw paddles
-        this.drawPaddle(this.paddle1, this.colors.primary);
-        this.drawPaddle(this.paddle2, this.colors.secondary);
+        // Draw game objects
+        this.ball.render(this.ctx, this.colors.white);
+        this.paddle1.render(this.ctx, this.colors.primary);
+        this.paddle2.render(this.ctx, this.colors.secondary);
         
         // Draw particles
-        this.renderParticles();
+        this.particleSystem.renderParticles(this.ctx);
         
         // Reset shadow for clean rendering
         this.ctx.shadowBlur = 0;
-    }
-    
-    drawPaddle(paddle, color) {
-        this.ctx.fillStyle = color;
-        this.ctx.shadowColor = color;
-        this.ctx.shadowBlur = 15;
-        this.ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
-    }
-    
-    drawBall() {
-        this.ctx.fillStyle = this.colors.white;
-        this.ctx.shadowColor = this.colors.white;
-        this.ctx.shadowBlur = 20;
-        this.ctx.beginPath();
-        this.ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
-        this.ctx.fill();
-    }
-    
-    drawBallTrail() {
-        for (let i = 0; i < this.ball.trail.length; i++) {
-            const alpha = (i + 1) / this.ball.trail.length * 0.5;
-            const radius = this.ball.radius * alpha;
-            
-            this.ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-            this.ctx.shadowColor = this.colors.white;
-            this.ctx.shadowBlur = 10 * alpha;
-            this.ctx.beginPath();
-            this.ctx.arc(this.ball.trail[i].x, this.ball.trail[i].y, radius, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
     }
     
     gameLoop(currentTime = 0) {
@@ -750,57 +360,6 @@ class VibePong {
             cancelAnimationFrame(this.animationId);
         }
         this.showMenu();
-    }
-    
-    playSound(soundName) {
-        if (!this.audioEnabled || !this.soundsOn || !this.sounds[soundName]) return;
-        
-        // Resume audio context if suspended (browser policy)
-        if (this.audioContext && this.audioContext.state === 'suspended') {
-            this.audioContext.resume();
-        }
-        
-        this.sounds[soundName]();
-    }
-    
-    createParticles(x, y, color, count = 6) {
-        for (let i = 0; i < count; i++) {
-            this.particles.push({
-                x: x,
-                y: y,
-                vx: (Math.random() - 0.5) * 8,
-                vy: (Math.random() - 0.5) * 8,
-                life: 1.0,
-                decay: 0.02 + Math.random() * 0.02,
-                size: 2 + Math.random() * 3,
-                color: color
-            });
-        }
-    }
-    
-    updateParticles() {
-        this.particles = this.particles.filter(particle => {
-            particle.x += particle.vx;
-            particle.y += particle.vy;
-            particle.vx *= 0.98; // Friction
-            particle.vy *= 0.98;
-            particle.life -= particle.decay;
-            return particle.life > 0;
-        });
-    }
-    
-    renderParticles() {
-        this.particles.forEach(particle => {
-            this.ctx.save();
-            this.ctx.globalAlpha = particle.life;
-            this.ctx.fillStyle = particle.color;
-            this.ctx.shadowColor = particle.color;
-            this.ctx.shadowBlur = 10;
-            this.ctx.beginPath();
-            this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-            this.ctx.fill();
-            this.ctx.restore();
-        });
     }
 }
 
