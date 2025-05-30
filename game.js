@@ -11,7 +11,7 @@ class VibePong {
         this.controlScheme = 'classic';
         
         // Canvas dimensions
-        this.width = 1024;
+        this.width = 1280;
         this.height = 768;
         
         // Game settings
@@ -53,7 +53,7 @@ class VibePong {
             radius: 8,
             vx: 5,
             vy: 3,
-            speed: 3,
+            speed: 4,
             maxSpeed: 15,
             trail: []
         };
@@ -216,7 +216,7 @@ class VibePong {
     resetBall() {
         this.ball.x = this.width / 2;
         this.ball.y = this.height / 2;
-        this.ball.speed = 3;
+        this.ball.speed = 4;
         
         // Random direction
         const angle = (Math.random() - 0.5) * Math.PI / 3; // ±30 degrees

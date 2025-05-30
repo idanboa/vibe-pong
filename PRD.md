@@ -166,7 +166,12 @@ As a player, I want to:
 ```
 
 ### 9.3 AI Assistant Prompt Rule
-🤖 **AI ASSISTANT MUST**: Prompt for git commit after completing any of the trigger points above, suggesting appropriate commit message based on changes made.
+🤖 **AI ASSISTANT MUST**: 
+- **Prompt for git commit** after completing any of the trigger points above
+- **Show proposed commit message** to user for review/editing
+- **Wait for user approval** before executing the commit
+- **Allow user to modify** the commit message if desired
+- **Only commit after explicit user confirmation**
 
 ---
 
