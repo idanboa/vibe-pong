@@ -13,6 +13,23 @@
             <h1 class="title">VIBE PONG</h1>
             
             <div class="menu-section">
+                <h2>Player Mode</h2>
+                <div class="player-mode-options">
+                    <button class="menu-btn" data-player-mode="singlePlayer">Single Player vs AI</button>
+                    <button class="menu-btn" data-player-mode="twoPlayer">Two Player Local</button>
+                </div>
+            </div>
+
+            <div class="menu-section" id="aiDifficultySection" style="display: none;">
+                <h2>AI Difficulty</h2>
+                <div class="ai-difficulty-options">
+                    <button class="menu-btn small" data-ai-difficulty="easy">Easy</button>
+                    <button class="menu-btn small" data-ai-difficulty="medium">Medium</button>
+                    <button class="menu-btn small" data-ai-difficulty="hard">Hard</button>
+                </div>
+            </div>
+            
+            <div class="menu-section" id="controlSchemeSection">
                 <h2>Control Scheme</h2>
                 <div class="control-options">
                     <button class="menu-btn" data-controls="classic">Classic (W/S - ↑/↓)</button>
@@ -35,6 +52,17 @@
         <!-- Game Canvas -->
         <div id="gameContainer" class="game-container hidden">
             <div class="game-ui">
+                <!-- Player Titles -->
+                <div class="player-titles">
+                    <div class="player-title left">
+                        <span id="player1Title" class="player-name">PLAYER 1</span>
+                    </div>
+                    <div class="vs-indicator">VS</div>
+                    <div class="player-title right">
+                        <span id="player2Title" class="player-name">PLAYER 2</span>
+                    </div>
+                </div>
+                
                 <div class="score-display">
                     <span id="player1Score" class="score">0</span>
                     <span class="score-separator">:</span>

@@ -24,10 +24,15 @@ Classic Pong reimagined with modern web technologies and neon aesthetics. A two-
 - [ ] **Dual game modes**: 
   - Score-based: **First to 10 points**
   - Time-based: **2-minute matches**
+- [ ] **Single Player vs AI** with difficulty selection
+- [ ] **Player titles display** at top of screen
 - [ ] Game over conditions for both modes
 
 ### 3.2 Controls & Menu System
-- [ ] **Main menu with control scheme selection**
+- [ ] **Main menu with game mode selection**:
+  - Single Player vs AI (with difficulty: Easy/Medium/Hard)
+  - Two Player local multiplayer
+- [ ] **Control scheme selection** (for human players)
 - [ ] **Multiple control schemes**:
   - Classic: Player 1 (W/S), Player 2 (↑/↓)
   - Spaced: Player 1 (A/Z), Player 2 (K/M)
@@ -79,16 +84,27 @@ Classic Pong reimagined with modern web technologies and neon aesthetics. A two-
 
 ### Day 1: Core Foundation & Gameplay
 **Morning (3-4 hours):**
-- [ ] Set up project structure (HTML, CSS, JS files)
-- [ ] Create HTML canvas with neon styling base
-- [ ] Implement paddle rendering with glow effects
-- [ ] Ball rendering with neon styling and basic physics
+- [x] Set up project structure (HTML, CSS, JS files)
+- [x] Create HTML canvas with neon styling base
+- [x] Implement paddle rendering with glow effects
+- [x] Ball rendering with neon styling and basic physics
 
 **Afternoon (3-4 hours):**
-- [ ] Multiple control scheme implementation
-- [ ] Ball-paddle collision detection with physics
-- [ ] Ball-wall collision detection
-- [ ] Basic score tracking system
+- [x] Multiple control scheme implementation
+- [x] Ball-paddle collision detection with physics
+- [x] Ball-wall collision detection
+- [x] Basic score tracking system
+
+### Day 1 Afternoon: AI Opponent & Enhanced UI
+**Updated Focus (3-4 hours):**
+- [ ] **AI opponent implementation** with realistic behavior
+- [ ] **Difficulty selection**: Easy, Medium, Hard AI
+- [ ] **Player titles display** at top of game screen
+- [ ] **Single Player menu flow** integration
+- [ ] **Realistic AI behaviors**:
+  - Easy: Slower reaction time, occasional misses
+  - Medium: Good tracking with slight delays
+  - Hard: Advanced prediction with rare mistakes
 
 ### Day 2: Menu System & Polish
 **Morning (3-4 hours):**

@@ -84,6 +84,19 @@ body {
     align-items: center;
 }
 
+.player-mode-options, .ai-difficulty-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.ai-difficulty-options {
+    flex-direction: row;
+    gap: 1rem;
+    justify-content: center;
+}
+
 .menu-btn {
     background: transparent;
     border: 2px solid var(--primary-cyan);
@@ -111,6 +124,12 @@ body {
     color: var(--background-navy);
     text-shadow: none;
     filter: drop-shadow(var(--glow-intensity) var(--primary-cyan));
+}
+
+.menu-btn.small {
+    min-width: 120px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
 }
 
 .play-btn {
@@ -153,12 +172,63 @@ body {
 /* Game UI */
 .game-ui {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 2rem;
+    gap: 1rem;
     margin-bottom: 1rem;
 }
 
+/* Player Titles */
+.player-titles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1280px;
+    margin-bottom: 0.5rem;
+}
+
+.player-title {
+    flex: 1;
+    text-align: center;
+}
+
+.player-title.left {
+    text-align: left;
+}
+
+.player-title.right {
+    text-align: right;
+}
+
+.player-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-cyan);
+    text-shadow: var(--glow-intensity) var(--primary-cyan);
+    animation: subtle-glow 3s ease-in-out infinite alternate;
+}
+
+.player-title.right .player-name {
+    color: var(--secondary-pink);
+    text-shadow: var(--glow-intensity) var(--secondary-pink);
+}
+
+.vs-indicator {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    text-shadow: var(--glow-intensity) var(--accent-blue);
+    padding: 0 2rem;
+}
+
+@keyframes subtle-glow {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.2); }
+}
+
+/* Score Display */
 .score-display {
     display: flex;
     align-items: center;

@@ -9,6 +9,8 @@ class VibePong {
         this.gameState = 'menu'; // menu, playing, paused, gameOver
         this.gameMode = 'score'; // score, time
         this.controlScheme = 'classic';
+        this.playerMode = 'twoPlayer'; // twoPlayer, singlePlayer
+        this.aiDifficulty = 'medium'; // easy, medium, hard
         
         // Canvas dimensions
         this.width = 1280;
@@ -110,6 +112,25 @@ class VibePong {
     }
     
     setupMenuHandlers() {
+        // Player mode selection
+        document.querySelectorAll('[data-player-mode]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[data-player-mode]').forEach(b => b.classList.remove('selected'));
+                e.target.classList.add('selected');
+                this.playerMode = e.target.dataset.playerMode;
+                this.toggleMenuSections();
+            });
+        });
+
+        // AI difficulty selection
+        document.querySelectorAll('[data-ai-difficulty]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('[data-ai-difficulty]').forEach(b => b.classList.remove('selected'));
+                e.target.classList.add('selected');
+                this.aiDifficulty = e.target.dataset.aiDifficulty;
+            });
+        });
+        
         // Control scheme selection
         document.querySelectorAll('[data-controls]').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -135,8 +156,23 @@ class VibePong {
         });
         
         // Set defaults
+        document.querySelector('[data-player-mode="twoPlayer"]').classList.add('selected');
+        document.querySelector('[data-ai-difficulty="medium"]').classList.add('selected');
         document.querySelector('[data-controls="classic"]').classList.add('selected');
         document.querySelector('[data-mode="score"]').classList.add('selected');
+    }
+    
+    toggleMenuSections() {
+        const aiDifficultySection = document.getElementById('aiDifficultySection');
+        const controlSchemeSection = document.getElementById('controlSchemeSection');
+        
+        if (this.playerMode === 'singlePlayer') {
+            aiDifficultySection.style.display = 'block';
+            controlSchemeSection.querySelector('h2').textContent = 'Player Controls';
+        } else {
+            aiDifficultySection.style.display = 'none';
+            controlSchemeSection.querySelector('h2').textContent = 'Control Scheme';
+        }
     }
     
     updateControlsDisplay() {
@@ -152,6 +188,19 @@ class VibePong {
         
         p1Display.textContent = `${keyMap[scheme.p1Up]}/${keyMap[scheme.p1Down]}`;
         p2Display.textContent = `${keyMap[scheme.p2Up]}/${keyMap[scheme.p2Down]}`;
+    }
+    
+    updatePlayerTitles() {
+        const player1Title = document.getElementById('player1Title');
+        const player2Title = document.getElementById('player2Title');
+        
+        if (this.playerMode === 'singlePlayer') {
+            player1Title.textContent = 'PLAYER';
+            player2Title.textContent = `COMPUTER (${this.aiDifficulty.toUpperCase()})`;
+        } else {
+            player1Title.textContent = 'PLAYER 1';
+            player2Title.textContent = 'PLAYER 2';
+        }
     }
     
     handleKeyPress(keyCode) {
@@ -196,6 +245,7 @@ class VibePong {
         
         this.resetGameObjects();
         this.updateControlsDisplay();
+        this.updatePlayerTitles();
         this.gameLoop();
     }
     
